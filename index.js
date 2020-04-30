@@ -24,8 +24,11 @@ const wsServer = new WebSocket.Server({
 })
 
 server.on('upgrade', (req, socket, head) => {
-  if (url.parse(req.url).pathname.startsWith('/socket/')) {
+  const ip = (req.headers['x-forwarded-for'] || `${req.socket.remoteAddress}:${req.socket.remotePort}`).split(/\s*,\s*/)[0];
+  log('upgrade connection from %s', ip)
+  if (req.url.startsWith('/socket/')) {
     wsServer.handleUpgrade(req, socket, head, ws => {
+      log('trying to upgrade to a websocket: %o', ws)
       ws.emit('connection', ws, req)
     })
   } else {
@@ -84,16 +87,12 @@ server.on('connection', socket => {
 })
 
 wsServer.on('connection', wsSocket => {
-  const extWs = wsSocket
-  extWs.isAlive = true
-
-  log('new websocket connection', extWs)
-
+  wsSocket.isAlive = true
+  log('new websocket connection', wsSocket)
   wsSocket.on('pong', () => {
-    log('pong event triggered from %o', extWs, json_filter)
-    extWs.isAlive = true
+    log('pong event triggered from %o', wsSocket)
+    wsSocket.isAlive = true
   })
-
   wsSocket.on('error', (err) => {
     console.error(`Client disconnected - reason: ${err}`);
   })
@@ -103,7 +102,7 @@ setInterval(() => {
   wsServer.clients.forEach(wsSocket => {
     const extWs = wsSocket
     if (!extWs.isAlive) {
-      log('ws is not alive, terminating', extWs)
+      log('ws is not alive, terminating', { extWs })
       return wsSocket.terminate()
     }
     extWs.isAlive = false
@@ -111,4 +110,4 @@ setInterval(() => {
       log('pinging', arguments)
     })
   })
-}, 10000)
+}, 30000)
