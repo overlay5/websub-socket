@@ -23,7 +23,7 @@ const wsServer = new WebSocket.Server({
 server.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/socket/')) {
     return wsServer.handleUpgrade(req, socket, head, ws => {
-      wsServer.emit('connection', ws, req)
+      wsServer.emit('connection', ws, socket)
     })
   }
   log.error('Request with wrong URL for WebSocket. Hanging up! %o',
@@ -78,12 +78,17 @@ server.on('connection', socket => {
   )
 })
 
-wsServer.on('connection', (ws, req) => {
-  ws.name = `${req.socket.remoteAddress}:${req.socket.remotePort}`
+wsServer.on('connection', (ws, socket) => {
+  ws.name = `${socket.remoteAddress}:${socket.remotePort}`
   log('connection from %s upgraded to websocket', ws.name)
   ws.isAlive = true
-  ws.ping(null, undefined)
-  ws.on('pong', () => { ws.isAlive = true })
+  ws.ping(null, undefined, () => {
+    log('ping to %o', ws.name)
+  })
+  ws.on('pong', () => {
+    log('pong from %o', ws.name)
+    ws.isAlive = true
+  })
   ws.on('error', (err) => {
     log.error('Client %s disconnected - reason: %o', ws.name, err);
   })
@@ -96,7 +101,9 @@ const pingInterval = setInterval(() => {
       return wsSocket.terminate()
     }
     ws.isAlive = false
-    ws.ping(null, undefined)
+    ws.ping(null, undefined, () => {
+      log('ping to %o', ws.name)
+    })
   })
 }, 10000)
 
