@@ -99,7 +99,6 @@ wsServer.on('connection', wsSocket => {
   })
 })
 
-log('registering an interval of 10s for websocket ping/pong messages')
 setInterval(() => {
   wsServer.clients.forEach(wsSocket => {
     const extWs = wsSocket
@@ -108,7 +107,8 @@ setInterval(() => {
       return wsSocket.terminate()
     }
     extWs.isAlive = false
-    log('pinging ws', wsSocket)
-    wsSocket.ping(null, undefined)
+    wsSocket.ping(() => {
+      log('pinging', arguments)
+    })
   })
 }, 10000)
