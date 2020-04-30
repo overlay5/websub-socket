@@ -34,7 +34,7 @@ server.on('upgrade', (req, socket, head) => {
 
 /* record the time it took to respond to a request */
 app.use(responseTime(function (req, res, time) {
-  log('request handling took %fms %s %s %o : status %s',
+  log('request handling took %fms %s %s %s %o : status %s',
     parseFloat(time).toPrecision(3),
     req.method,
     req.url,
@@ -44,7 +44,7 @@ app.use(responseTime(function (req, res, time) {
   )
 }))
 
-app.use(bodyParser.raw())
+app.use(bodyParser.raw({ type: '*/*' }))
 
 /* handle webhooks & WebSub challenges */
 app.use('/hook/', function (req, res, next) {
