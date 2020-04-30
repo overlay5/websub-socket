@@ -21,14 +21,14 @@ const app = connect()
 const server = http.createServer(app)
 const terminator = createHttpTerminator({ server })
 
-const ws = new WebSocket.Server({
+const wsServer = new WebSocket.Server({
   noServer: true,
   maxPayload: 1024 * 1024, // 1MB
 })
 
 server.on('upgrade', (req, socket, head) => {
   if (url.parse(req.url).pathname.startsWith('/socket/')) {
-    ws.handleUpgrade(req, socket, head, ws => {
+    wsServer.handleUpgrade(req, socket, head, ws => {
       ws.emit('connection', ws, req)
     })
   } else {
@@ -47,11 +47,13 @@ app.use('/hook/', function (req, res, next) {
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
     const challenge = req.url.replace(/^.*hub.challenge=([^&]*)&.*$/, '$1')
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.write(challenge);
-    res.end();
-    return
+    return res.send(challenge);
   }
-  log({ req, res })
+  if (req.method === 'POST') {
+    log('POST request', { req })
+  }
+  res.writeHead(404)
+  return res.send('Not found')
 })
 
 server.listen({ host, port }, () => {
@@ -59,5 +61,36 @@ server.listen({ host, port }, () => {
 })
 
 server.on('connection', socket => {
-  log(`new connection from %o`, { address: socket.remoteAddress, port: socket.remotePort })
+  log(`new http connection from %o`, { address: socket.remoteAddress, port: socket.remotePort })
 })
+
+wsServer.on('connection', wsSocket => {
+  const extWs = wsSocket
+  extWs.isAlive = true
+
+  log('new websocket connection', extWs)
+
+  wsSocket.on('pong', () => {
+    log('pong event triggered from %o', extWs, json_filter)
+    extWs.isAlive = true
+  })
+
+  wsSocket.on('error', (err) => {
+    console.error(`Client disconnected - reason: ${err}`);
+  })
+})
+
+log('registering an interval of 10s for websocket ping/pong messages')
+setInterval(() => {
+  log('iterating on websocket clients to register ping/pong handler')
+  wsServer.clients.forEach(wsSocket => {
+    const extWs = wsSocket
+    if (!extWs.isAlive) {
+      log('ws is not alive, terminating', extWs)
+      return wsSocket.terminate()
+    }
+    extWs.isAlive = false
+    log('pinging ws', wsSocket)
+    wsSocket.ping(null, undefined)
+  })
+}, 10000)
