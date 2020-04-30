@@ -37,6 +37,7 @@ app.use(responseTime(function (req, res, time) {
     parseFloat(time).toPrecision(3),
     req.method,
     req.url,
+    req.body,
     { headers: req.headers },
     res.statusCode
   )
