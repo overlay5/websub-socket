@@ -3,7 +3,6 @@ log.error = log.extend('error')
 log.log = console.log.bind(console)
 log.error.log = console.error.bind(console)
 
-const url = require('url')
 const http = require('http')
 const connect = require('connect')
 const WebSocket = require('ws')
@@ -24,11 +23,8 @@ const wsServer = new WebSocket.Server({
 })
 
 server.on('upgrade', (req, socket, head) => {
-  const ip = (req.headers['x-forwarded-for'] || `${req.socket.remoteAddress}:${req.socket.remotePort}`).split(/\s*,\s*/)[0];
-  log('upgrade connection from %s', ip)
   if (req.url.startsWith('/socket/')) {
     wsServer.handleUpgrade(req, socket, head, ws => {
-      log('trying to upgrade to a websocket: %o', ws)
       ws.emit('connection', ws, req)
     })
   } else {
@@ -87,8 +83,12 @@ server.on('connection', socket => {
 })
 
 wsServer.on('connection', wsSocket => {
-  wsSocket.isAlive = true
   log('new websocket connection', wsSocket)
+  log('websocket server clients: %o', wsServer.clients)
+  wsSocket.isAlive = true
+  wsSocket.ping(() => {
+    log('pinging', arguments)
+  })
   wsSocket.on('pong', () => {
     log('pong event triggered from %o', wsSocket)
     wsSocket.isAlive = true
