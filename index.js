@@ -3,6 +3,14 @@ log.error = log.extend('error')
 log.log = console.log.bind(console)
 log.error.log = console.error.bind(console)
 
+function json_filter(key, value) {
+  if (key.startsWith('_')) {
+    return undefined;
+  } else {
+    return value;
+  }
+}
+
 const http = require('http')
 const connect = require('connect')
 const WebSocket = require('ws')
@@ -78,14 +86,13 @@ server.on('connection', socket => {
 })
 
 wsServer.on('connection', wsSocket => {
-  log('new websocket connection', wsSocket)
-  log('websocket server clients: %o', wsServer.clients)
+  log('new websocket connection', JSON.stringify(wsSocket, json_filter))
   wsSocket.isAlive = true
   wsSocket.ping('PING', false, () => {
     log('pinging', arguments)
   })
   wsSocket.on('pong', () => {
-    log('pong event triggered from %o', wsSocket)
+    log('pong event triggered from %o', JSON.stringify(wsSocket, json_filter))
     wsSocket.isAlive = true
   })
   wsSocket.on('error', (err) => {
@@ -94,10 +101,9 @@ wsServer.on('connection', wsSocket => {
 })
 
 setInterval(() => {
-  log('pinging ws clients %o', wsServer.clients)
   wsServer.clients.forEach(wsSocket => {
     if (!wsSocket.isAlive) {
-      log('ws is not alive, terminating', { wsSocket })
+      log('ws is not alive, terminating', JSON.stringify(wsSocket, json_filter))
       return wsSocket.terminate()
     }
     wsSocket.isAlive = false
