@@ -1,0 +1,32 @@
+{
+  "name": "web-subsocket",
+  "version": "0.0.1",
+  "description": "Proxy WebSub to WebHooks",
+  "main": "index.js",
+  "dependencies": {
+    "agentkeepalive": "^4.1.2",
+    "compression": "^1.7.4",
+    "connect": "^3.7.0",
+    "connect-timeout": "^1.9.0",
+    "cors": "^2.8.5",
+    "debug": "^4.1.1",
+    "http-terminator": "^2.0.3",
+    "response-time": "^2.3.2",
+    "ws": "^7.2.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/overlay5/web-subsocket.git"
+  },
+  "author": "Evgeny Zislis <evgeny.zislis@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/overlay5/web-subsocket/issues"
+  },
+  "homepage": "https://github.com/overlay5/web-subsocket#readme"
+}

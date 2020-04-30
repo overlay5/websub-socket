@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  websub:
+    init: true
+    restart: on-failure
+    image: node:${DOCKER_NODEJS_TAG}
+    command:
+    - /bin/sh
+    - -c
+    - 'cd /app && echo -n "Node.js " && node --version && npm i --no-optional --no-audit && exec npm start'
+    environment:
+      PORT: $PORT
+      DEBUG_COLORS: 1
+      DEBUG: websub*
+    ports:
+    - $PORT:$PORT
+    volumes:
+    - .:/app:cached
+    - npm_cache:/root/.npm:delegated
+    - node_modules:/app/node_modules:delegated
+
+volumes:
+  npm_cache:
+  node_modules:
