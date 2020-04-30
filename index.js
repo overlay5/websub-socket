@@ -8,10 +8,8 @@ const http = require('http')
 const connect = require('connect')
 const WebSocket = require('ws')
 
-const { createHttpTerminator } = require('http-terminator')
 const responseTime = require('response-time')
 const compression = require('compression')
-const timeout = require('connect-timeout')
 const cors = require('cors')
 
 const port = process.env.PORT || 8090
@@ -19,7 +17,6 @@ const host = process.env.HOST || '0.0.0.0'
 
 const app = connect()
 const server = http.createServer(app)
-const terminator = createHttpTerminator({ server })
 
 const wsServer = new WebSocket.Server({
   noServer: true,
@@ -37,15 +34,18 @@ server.on('upgrade', (req, socket, head) => {
   }
 })
 
+const responseTimeFn = (req, res, time) => {
+  log('request handling took %fms %s %s %o', parseFloat(time).toPrecision(3), req.method, req.url, { headers: req.headers })
+}
+
 app
-  .use(responseTime())
+  .use(responseTime(responseTimeFn))
   .use(cors())
   .use(compression())
-  .use(timeout('15s'))
 
 app.use('/hook/', function (req, res, next) {
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
-    const challenge = req.url.replace(/^.*hub.challenge=([^&]*)&.*$/, '$1')
+    const challenge = req.url.replace(/.*hub.challenge=([^&]*).*$/, '$1')
     return res
       .writeHead(200, {
         'Content-Type': 'text/plain',
@@ -54,11 +54,22 @@ app.use('/hook/', function (req, res, next) {
       .end(challenge)
   }
   if (req.method === 'POST') {
-    log('POST request', { req })
+    // TODO: implement webhook handling
   }
+  return next()
+})
+
+/**
+ * "Catch All" route, for all the requests that did not match /hook/
+ */
+app.use(function (req, res, next) {
+  const notFoundText = 'not found\n'
   return res
-    .writeHead(404)
-    .end('not found')
+    .writeHead(404, {
+      'Content-Type': 'text/plain',
+      'Content-Length': Buffer.byteLength(notFoundText)
+    })
+    .end(notFoundText)
 })
 
 server.listen({ host, port }, () => {
@@ -66,7 +77,10 @@ server.listen({ host, port }, () => {
 })
 
 server.on('connection', socket => {
-  log(`new http connection from %o`, { address: socket.remoteAddress, port: socket.remotePort })
+  log(`new connection from %s:%s to %s:%s`,
+    socket.remoteAddress, socket.remotePort,
+    socket.localAddress, socket.localPort,
+  )
 })
 
 wsServer.on('connection', wsSocket => {

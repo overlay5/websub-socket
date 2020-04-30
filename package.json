@@ -7,10 +7,8 @@
     "agentkeepalive": "^4.1.2",
     "compression": "^1.7.4",
     "connect": "^3.7.0",
-    "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
-    "http-terminator": "^2.0.3",
     "ioredis": "^4.16.3",
     "response-time": "^2.3.2",
     "ws": "^7.2.5"
