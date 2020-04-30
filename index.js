@@ -8,6 +8,7 @@ const connect = require('connect')
 const WebSocket = require('ws')
 
 const responseTime = require('response-time')
+const bodyParser = require('body-parser')
 
 const port = process.env.PORT || 8090
 const host = process.env.HOST || '0.0.0.0'
@@ -37,11 +38,13 @@ app.use(responseTime(function (req, res, time) {
     parseFloat(time).toPrecision(3),
     req.method,
     req.url,
-    req.fullBody,
+    req.body,
     { headers: req.headers },
     res.statusCode
   )
 }))
+
+app.use(bodyParser.raw())
 
 /* handle webhooks & WebSub challenges */
 app.use('/hook/', function (req, res, next) {
@@ -57,13 +60,6 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'POST') {
     // TODO: implement webhook handling
-    let data = []
-    req.on('data', chunk => {
-      data.push(chunk)
-    })
-    req.on('end', () => {
-      req.fullBody = data.join('') // 'Buy the milk'
-    })
   }
   return next()
 })

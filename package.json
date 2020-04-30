@@ -4,6 +4,7 @@
   "description": "Proxy WebSub to WebHooks",
   "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "connect": "^3.7.0",
     "debug": "^4.1.1",
     "ioredis": "^4.16.3",
