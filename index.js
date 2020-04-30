@@ -37,7 +37,7 @@ app.use(responseTime(function (req, res, time) {
     parseFloat(time).toPrecision(3),
     req.method,
     req.url,
-    req.body,
+    req.fullBody,
     { headers: req.headers },
     res.statusCode
   )
@@ -57,6 +57,13 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'POST') {
     // TODO: implement webhook handling
+    let data = []
+    req.on('data', chunk => {
+      data.push(chunk)
+    })
+    req.on('end', () => {
+      req.fullBody = data.join('') // 'Buy the milk'
+    })
   }
   return next()
 })
