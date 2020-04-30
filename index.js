@@ -8,8 +8,6 @@ const connect = require('connect')
 const WebSocket = require('ws')
 
 const responseTime = require('response-time')
-const compression = require('compression')
-const cors = require('cors')
 
 const port = process.env.PORT || 8090
 const host = process.env.HOST || '0.0.0.0'
@@ -37,10 +35,7 @@ const responseTimeFn = (req, res, time) => {
   log('request handling took %fms %s %s %o', parseFloat(time).toPrecision(3), req.method, req.url, { headers: req.headers })
 }
 
-app
-  .use(responseTime(responseTimeFn))
-  .use(cors())
-  .use(compression())
+app.use(responseTime(responseTimeFn))
 
 app.use('/hook/', function (req, res, next) {
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
