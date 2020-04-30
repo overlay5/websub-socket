@@ -94,13 +94,13 @@ wsServer.on('connection', wsSocket => {
 })
 
 setInterval(() => {
+  log('pinging ws clients %o', wsServer.clients)
   wsServer.clients.forEach(wsSocket => {
-    const extWs = wsSocket
-    if (!extWs.isAlive) {
-      log('ws is not alive, terminating', { extWs })
+    if (!wsSocket.isAlive) {
+      log('ws is not alive, terminating', { wsSocket })
       return wsSocket.terminate()
     }
-    extWs.isAlive = false
+    wsSocket.isAlive = false
     wsSocket.ping(() => {
       log('pinging', arguments)
     })
