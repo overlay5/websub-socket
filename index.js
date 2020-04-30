@@ -44,6 +44,13 @@ app
   .use(timeout('15s'))
 
 app.use('/hook/', function (req, res, next) {
+  if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
+    const challenge = req.url.replace(/^.*hub.challenge=([^&]*)&.*$/, '$1')
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write(challenge);
+    res.end();
+    return
+  }
   log({ req, res })
 })
 
