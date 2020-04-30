@@ -46,14 +46,19 @@ app
 app.use('/hook/', function (req, res, next) {
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
     const challenge = req.url.replace(/^.*hub.challenge=([^&]*)&.*$/, '$1')
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    return res.send(challenge);
+    return res
+      .writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(challenge),
+      })
+      .end(challenge)
   }
   if (req.method === 'POST') {
     log('POST request', { req })
   }
-  res.writeHead(404)
-  return res.send('Not found')
+  return res
+    .writeHead(404)
+    .end('not found')
 })
 
 server.listen({ host, port }, () => {
@@ -82,7 +87,6 @@ wsServer.on('connection', wsSocket => {
 
 log('registering an interval of 10s for websocket ping/pong messages')
 setInterval(() => {
-  log('iterating on websocket clients to register ping/pong handler')
   wsServer.clients.forEach(wsSocket => {
     const extWs = wsSocket
     if (!extWs.isAlive) {
