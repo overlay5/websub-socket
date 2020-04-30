@@ -11,6 +11,7 @@
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "http-terminator": "^2.0.3",
+    "ioredis": "^4.16.3",
     "response-time": "^2.3.2",
     "ws": "^7.2.5"
   },
