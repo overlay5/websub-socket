@@ -3,6 +3,7 @@ log.error = log.extend('error')
 log.log = console.log.bind(console)
 log.error.log = console.error.bind(console)
 
+const url = require('url')
 const http = require('http')
 const connect = require('connect')
 const WebSocket = require('ws')
