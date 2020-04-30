@@ -81,7 +81,7 @@ wsServer.on('connection', wsSocket => {
   log('new websocket connection', wsSocket)
   log('websocket server clients: %o', wsServer.clients)
   wsSocket.isAlive = true
-  wsSocket.ping(() => {
+  wsSocket.ping('PING', false, () => {
     log('pinging', arguments)
   })
   wsSocket.on('pong', () => {
@@ -96,13 +96,14 @@ wsServer.on('connection', wsSocket => {
 setInterval(() => {
   log('pinging ws clients %o', wsServer.clients)
   wsServer.clients.forEach(wsSocket => {
-    // if (!wsSocket.isAlive) {
-    //   log('ws is not alive, terminating', { wsSocket })
-    //   return wsSocket.terminate()
-    // }
+    if (!wsSocket.isAlive) {
+      log('ws is not alive, terminating', { wsSocket })
+      return wsSocket.terminate()
+    }
     wsSocket.isAlive = false
-    wsSocket.ping(() => {
+    // wsSocket.send('PING')
+    wsSocket.ping('PING', false, () => {
       log('pinging', arguments)
     })
   })
-}, 30000)
+}, 10000)
