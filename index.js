@@ -70,11 +70,10 @@ app.use('/hook/', function (req, res, next) {
       .end(challenge)
   }
   if (req.method === 'POST') {
-    const endpoint = req.url.substr(6)
-    const ws = [...wsServer.clients].find(ws => ws.name === wsEndpointClients[endpoint])
+    const endpoint = req.url.substr(1)
     wsServer.clients.forEach(client => {
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
+        return client.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
       }
     })
     const hubResponse = 'ok'
@@ -110,10 +109,10 @@ wsServer.on('connection', ws => {
   log('connection from %s upgraded to websocket', ws.name)
   ws.isAlive = true
   ws.ping(null, undefined, () => {
-    log('ping to %o', ws.name)
+    // log('ping to %o', ws.name)
   })
   ws.on('pong', () => {
-    log('pong from %o', ws.name)
+    // log('pong from %o', ws.name)
     ws.isAlive = true
   })
   ws.on('error', (err) => {
@@ -129,7 +128,7 @@ const pingInterval = setInterval(() => {
     }
     ws.isAlive = false
     ws.ping(null, undefined, () => {
-      log('ping to %o', ws.name)
+      // log('ping to %o', ws.name)
     })
   })
 }, 10000)
