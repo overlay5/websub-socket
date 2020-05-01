@@ -72,9 +72,11 @@ app.use('/hook/', function (req, res, next) {
   if (req.method === 'POST') {
     const endpoint = req.url.substr(6)
     const ws = [...wsServer.clients].find(ws => ws.name === wsEndpointClients[endpoint])
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
-    }
+    wsServer.clients.forEach(client => {
+      if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
+      }
+    })
     const hubResponse = 'ok'
     return res
       .writeHead(200, {
