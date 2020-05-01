@@ -34,7 +34,7 @@ server.on('upgrade', (req, socket, head) => {
     }
     return wsServer.handleUpgrade(req, socket, head, ws => {
       ws.name = `${socket.remoteAddress}:${socket.remotePort}`
-      wsEndpointClients[endpoint] = ws
+      wsEndpointClients[endpoint] = ws.name
       wsServer.emit('connection', ws)
     })
   }
@@ -71,7 +71,7 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'POST') {
     const endpoint = req.url.substr(6)
-    const ws = wsEndpointClients[endpoint]
+    const ws = wsServer.clients.find(ws => ws.name === wsEndpointClients[endpoint])
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
     }
