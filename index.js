@@ -21,10 +21,21 @@ const wsServer = new WebSocket.Server({
   maxPayload: 1024 * 1024, // 1MB
 })
 
+/* holds a list of endpoints for /socket/<endpoint> that match with /hook/<endpoint> */
+// TODO: change to using Redis
+const endpoints = []
+const wsEndpointClients = {}
+
 server.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/socket/')) {
+    const endpoint = req.url.substr(8)
+    if (!endpoints.includes(endpoint)) {
+      endpoints.push(endpoint)
+    }
     return wsServer.handleUpgrade(req, socket, head, ws => {
-      wsServer.emit('connection', ws, socket)
+      ws.name = `${socket.remoteAddress}:${socket.remotePort}`
+      wsEndpointClients[endpoint] = ws
+      wsServer.emit('connection', ws)
     })
   }
   log.error('Request with wrong URL for WebSocket. Hanging up! %o',
@@ -59,7 +70,18 @@ app.use('/hook/', function (req, res, next) {
       .end(challenge)
   }
   if (req.method === 'POST') {
-    // TODO: implement webhook handling
+    const endpoint = req.url.substr(6)
+    const ws = wsEndpointClients[endpoint]
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
+    }
+    const hubResponse = 'ok'
+    return res
+      .writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Content-Length': Buffer.byteLength(hubResponse),
+      })
+      .end(hubResponse)
   }
   return next()
 })
@@ -82,8 +104,7 @@ server.on('connection', socket => {
   )
 })
 
-wsServer.on('connection', (ws, socket) => {
-  ws.name = `${socket.remoteAddress}:${socket.remotePort}`
+wsServer.on('connection', ws => {
   log('connection from %s upgraded to websocket', ws.name)
   ws.isAlive = true
   ws.ping(null, undefined, () => {
