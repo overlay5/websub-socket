@@ -71,7 +71,7 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'POST') {
     const endpoint = req.url.substr(6)
-    const ws = wsServer.clients.find(ws => ws.name === wsEndpointClients[endpoint])
+    const ws = [...wsServer.clients].find(ws => ws.name === wsEndpointClients[endpoint])
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
     }
