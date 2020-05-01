@@ -23,17 +23,14 @@ const wsServer = new WebSocket.Server({
 
 /* holds a list of endpoints for /socket/<endpoint> that match with /hook/<endpoint> */
 // TODO: change to using Redis
-const endpoints = []
 const wsEndpointClients = {}
 
 server.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/socket/')) {
     const endpoint = req.url.substr(8)
-    if (!endpoints.includes(endpoint)) {
-      endpoints.push(endpoint)
-    }
     return wsServer.handleUpgrade(req, socket, head, ws => {
       ws.name = `${socket.remoteAddress}:${socket.remotePort}`
+      log('upgraded %s to websocket with endpoint name %s', ws.name, endpoint)
       wsEndpointClients[endpoint] = ws.name
       wsServer.emit('connection', ws)
     })
@@ -71,10 +68,14 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'POST') {
     const endpoint = req.url.substr(1)
+    log('webhook to /hook/%s - endpoint is %s', req.url, endpoint)
     wsServer.clients.forEach(client => {
+      log('checking client with name %s in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
+        log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
         return client.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
       }
+      log('client %s is missing from endpoints list for this endpoint')
     })
     const hubResponse = 'ok'
     return res
