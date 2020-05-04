@@ -73,7 +73,7 @@ app.use('/hook/', function (req, res, next) {
       log('checking client with name %s in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
         log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
-        return client.send(JSON.stringify({ headers: req.header, ...JSON.parse(req.body) }))
+        return client.send(JSON.stringify({ headers: req.headers, ...JSON.parse(req.body) }))
       }
       log('client %s is missing from endpoints list for this endpoint')
     })
