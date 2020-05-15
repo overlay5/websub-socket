@@ -76,14 +76,10 @@ app.use('/hook/', function (req, res, next) {
       log('checking client with name %s in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
         log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
-        return client.send(JSON.stringify({ headers: req.headers, ...JSON.parse(reqQS) }))
+        return client.send(JSON.stringify({ method: req.method, headers: req.headers, querystring: reqQS }))
       }
       log('client %s is missing from endpoints list for this endpoint')
     })
-    // /hook/twitch-webhooks-w5rubqhDZ90cRWb
-    // ?hub.mode=denied
-    // &hub.reason=exceeded+maximum+number+of+allowed+subscriptions+for+topic
-    // &hub.topic=https%3A%2F%2Fapi.twitch.tv%2Fhelix%2Fusers%2Ffollows%3Ffirst%3D1%26to_id%3D55558379
   }
   if (req.method === 'POST') {
     const endpoint = req.url.substr(1)
@@ -92,7 +88,7 @@ app.use('/hook/', function (req, res, next) {
       log('checking client with name %s in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
         log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
-        return client.send(JSON.stringify({ headers: req.headers, ...JSON.parse(req.body) }))
+        return client.send(JSON.stringify({ method: req.method, headers: req.headers, ...JSON.parse(req.body) }))
       }
       log('client %s is missing from endpoints list for this endpoint')
     })
