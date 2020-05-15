@@ -70,7 +70,7 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'GET' && req.url.match(/hub.mode=/)) {
     const reqQS = Object.fromEntries(reqURL.searchParams.entries())
-    const endpoint = reqURL.split('/')[2]
+    const endpoint = reqURL.pathname.split('/')[2]
     log('webhook to %s - endpoint is %s', reqURL.pathname, endpoint)
     wsServer.clients.forEach(client => {
       log('checking client with name "%s" in endpoints list', client.name)
@@ -82,7 +82,7 @@ app.use('/hook/', function (req, res, next) {
     })
   }
   if (req.method === 'POST') {
-    const endpoint = reqURL.split('/')[2]
+    const endpoint = reqURL.pathname.split('/')[2]
     log('webhook to "%s" - endpoint is "%s"', req.url, endpoint)
     wsServer.clients.forEach(client => {
       log('checking client with name "%s" in endpoints list', client.name)
