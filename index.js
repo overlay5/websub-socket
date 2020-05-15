@@ -57,6 +57,7 @@ app.use(bodyParser.raw({ type: '*/*' }))
 
 /* handle webhooks & WebSub challenges */
 app.use('/hook/', function (req, res, next) {
+  const reqURL = new url.URL(req.url, `https://${req.headers.host}`)
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
     const challenge = req.url.replace(/.*hub.challenge=([^&]*).*$/, '$1')
     log('Responding to challenge with: %o', { challenge })
@@ -68,29 +69,28 @@ app.use('/hook/', function (req, res, next) {
       .end(challenge)
   }
   if (req.method === 'GET' && req.url.match(/hub.mode=/)) {
-    const endpoint = req.url.substr(1)
-    const reqURL = new url.URL(req.url, `http://${req.headers.host}`)
     const reqQS = Object.fromEntries(reqURL.searchParams.entries())
-    log('webhook to /hook/%s - endpoint is %s', req.url, endpoint)
+    const endpoint = reqURL.split('/')[2]
+    log('webhook to %s - endpoint is %s', reqURL.pathname, endpoint)
     wsServer.clients.forEach(client => {
-      log('checking client with name %s in endpoints list', client.name)
+      log('checking client with name "%s" in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
-        log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
+        log('client "%s" WAS FOUND in endpoints list for this endpoint', client.name)
         return client.send(JSON.stringify({ method: req.method, headers: req.headers, querystring: reqQS }))
       }
-      log('client %s is missing from endpoints list for this endpoint')
+      log('client "%s" is missing from endpoints list for this endpoint', client.name)
     })
   }
   if (req.method === 'POST') {
-    const endpoint = req.url.substr(1)
-    log('webhook to /hook/%s - endpoint is %s', req.url, endpoint)
+    const endpoint = reqURL.split('/')[2]
+    log('webhook to /hook%s - endpoint is %s', req.url, endpoint)
     wsServer.clients.forEach(client => {
       log('checking client with name %s in endpoints list', client.name)
       if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
         log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
         return client.send(JSON.stringify({ method: req.method, headers: req.headers, ...JSON.parse(req.body) }))
       }
-      log('client %s is missing from endpoints list for this endpoint')
+      log('client "%s" is missing from endpoints list for this endpoint', client.name)
     })
     const hubResponse = 'ok'
     return res
