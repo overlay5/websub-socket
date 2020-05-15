@@ -3,6 +3,7 @@ log.error = log.extend('error')
 log.log = console.log.bind(console)
 log.error.log = console.error.bind(console)
 
+const url = require('url')
 const http = require('http')
 const connect = require('connect')
 const WebSocket = require('ws')
@@ -65,6 +66,24 @@ app.use('/hook/', function (req, res, next) {
         'Content-Length': Buffer.byteLength(challenge),
       })
       .end(challenge)
+  }
+  if (req.method === 'GET' && req.url.match(/hub.mode=/)) {
+    const endpoint = req.url.substr(1)
+    const reqURL = new url.URL(req.url)
+    const reqQS = Object.fromEntries(reqURL.searchParams.entries())
+    log('webhook to /hook/%s - endpoint is %s', req.url, endpoint)
+    wsServer.clients.forEach(client => {
+      log('checking client with name %s in endpoints list', client.name)
+      if (client.name === wsEndpointClients[endpoint] && client.readyState === WebSocket.OPEN) {
+        log('client %s WAS FOUND in endpoints list for this endpoint', client.name)
+        return client.send(JSON.stringify({ headers: req.headers, ...JSON.parse(reqQS) }))
+      }
+      log('client %s is missing from endpoints list for this endpoint')
+    })
+    // /hook/twitch-webhooks-w5rubqhDZ90cRWb
+    // ?hub.mode=denied
+    // &hub.reason=exceeded+maximum+number+of+allowed+subscriptions+for+topic
+    // &hub.topic=https%3A%2F%2Fapi.twitch.tv%2Fhelix%2Fusers%2Ffollows%3Ffirst%3D1%26to_id%3D55558379
   }
   if (req.method === 'POST') {
     const endpoint = req.url.substr(1)
