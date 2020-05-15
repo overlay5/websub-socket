@@ -58,6 +58,8 @@ app.use(bodyParser.raw({ type: '*/*' }))
 /* handle webhooks & WebSub challenges */
 app.use('/hook/', function (req, res, next) {
   const reqURL = new url.URL(req.url, `https://${req.headers.host}`)
+  const urlSplitPath = reqURL.pathname.split('/')
+  const endpoint = urlSplitPath[urlSplitPath.length - 1]
   if (req.method === 'GET' && req.url.match(/hub.challenge=/)) {
     const challenge = req.url.replace(/.*hub.challenge=([^&]*).*$/, '$1')
     log('Responding to challenge with: %o', { challenge })
@@ -70,7 +72,6 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'GET' && req.url.match(/hub.mode=/)) {
     const reqQS = Object.fromEntries(reqURL.searchParams.entries())
-    const endpoint = reqURL.pathname.split('/')[2]
     log('webhook to %s - endpoint is %s', reqURL.pathname, endpoint)
     wsServer.clients.forEach(client => {
       log('checking client with name "%s" in endpoints list', client.name)
@@ -82,7 +83,6 @@ app.use('/hook/', function (req, res, next) {
     })
   }
   if (req.method === 'POST') {
-    const endpoint = reqURL.pathname.split('/')[2]
     log('webhook to "%s" - endpoint is "%s"', req.url, endpoint)
     wsServer.clients.forEach(client => {
       log('checking client with name "%s" in endpoints list', client.name)
