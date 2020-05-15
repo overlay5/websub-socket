@@ -1,7 +1,7 @@
 {
-  "name": "web-subsocket",
+  "name": "websub-socket",
   "version": "0.0.1",
-  "description": "Proxy WebSub to WebHooks",
+  "description": "Proxy of WebSub for WebSocket clients",
   "main": "index.js",
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -9,7 +9,7 @@
     "debug": "^4.1.1",
     "ioredis": "^4.16.3",
     "response-time": "^2.3.2",
-    "ws": "^7.2.5"
+    "ws": "^7.3.0"
   },
   "engines": {
     "node": "12.16.3",
@@ -20,20 +20,29 @@
     "@types/connect": "^3.4.33",
     "@types/node": "^14.0.1",
     "@types/response-time": "^2.3.4",
-    "@types/ws": "^7.2.4"
+    "@types/ws": "^7.2.4",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.0.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-editorconfig": "^2.1.2",
+    "eslint-plugin-jsdoc": "^25.4.1",
+    "eslint-plugin-mocha": "^7.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^7.1.2",
+    "supertest": "^4.0.2"
   },
   "scripts": {
     "start": "node index.js",
-    "test": "mocha"
+    "test": "mocha test/**/*.test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/overlay5/web-subsocket.git"
+    "url": "git+https://github.com/overlay5/websub-socket.git"
   },
   "author": "Evgeny Zislis <evgeny.zislis@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/overlay5/web-subsocket/issues"
+    "url": "https://github.com/overlay5/websub-socket/issues"
   },
-  "homepage": "https://github.com/overlay5/web-subsocket#readme"
+  "homepage": "https://github.com/overlay5/websub-socket#readme"
 }
