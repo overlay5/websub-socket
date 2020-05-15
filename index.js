@@ -69,7 +69,7 @@ app.use('/hook/', function (req, res, next) {
   }
   if (req.method === 'GET' && req.url.match(/hub.mode=/)) {
     const endpoint = req.url.substr(1)
-    const reqURL = new url.URL(req.url)
+    const reqURL = new url.URL(req.url, `http://${req.headers.host}`)
     const reqQS = Object.fromEntries(reqURL.searchParams.entries())
     log('webhook to /hook/%s - endpoint is %s', req.url, endpoint)
     wsServer.clients.forEach(client => {
