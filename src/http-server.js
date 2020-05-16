@@ -20,13 +20,23 @@ function logConnection(socket) {
 }
 
 /**
+ * Callback for when the server starts listening
+ *
+ * @callback listeningCallback
+ * @param {http.Server} server the http server
+ */
+
+/**
  * Start the HTTP listener on the HTTP server
  *
+ * @param {listeningCallback} callback called when the server is listening
  * @returns {http.Server} the http server
  */
-function startServer() {
+function startServer(callback) {
   const port = process.env.PORT || 8090
   const host = process.env.HOST || '0.0.0.0'
+  if (callback)
+    server.on('listening', () => callback(server))
   server.listen({ host, port }, () => {
     /* console.log is always displayed, unlike log() which depends on DEBUG=* */
     console.log(`Listening on http port ${port}.`)
@@ -38,5 +48,6 @@ const server = http.createServer()
 server.on('connection', logConnection)
 
 module.exports = {
+  server,
   startServer
 }
