@@ -2,6 +2,8 @@ const log = require('./logger')('websub:ws')
 const WebSocket = require('ws')
 const { endpointFromReq } = require('./endpoint')
 
+// https://github.com/websockets/ws/blob/master/doc/ws.md
+
 /**
  * @typedef { import('http') } http
  * @typedef { import('http').IncomingMessage } http.IncomingMessage
@@ -12,18 +14,13 @@ const { endpointFromReq } = require('./endpoint')
 
 const KEEPALIVE_INTERVAL = 10000
 
-const wsServer = new WebSocket.Server({
-  noServer: true,
-  maxPayload: 1024 * 1024, // 1MB
-})
-
 /**
  * Check if this server should handle the request to upgrade to WebSocket
  *
  * @param {http.IncomingMessage} req original upgrade request
  * @returns {boolean} should this WebSocket.Server accept the upgrade or reject it
  */
-wsServer.shouldHandle = function (req) {
+function shouldHandle(req) {
   return req.url.startsWith('/socket/')
 }
 
@@ -54,17 +51,14 @@ function keepalive(ws) {
   })
 }
 
-/* when server is closed, remove all the keepalive(ws) ping intervals */
-wsServer.on('close', () => {
-  log('Closing WebSocket Server! %o', arguments)
+/**
+ * Clear all the keepalive intervals on the server clients.
+ */
+function clearAllKeepalives() {
   for (const ws of wsServer.clients)
     if (ws.pingInterval)
       clearInterval(ws.pingInterval)
-})
-
-wsServer.on('connection', ws => {
-  keepalive(ws)
-})
+}
 
 /**
  * Handle an http.Server 'upgrade' event
@@ -83,6 +77,16 @@ function upgradeToWebSocket(req, socket, head) {
 }
 
 /**
+ * Register client endpoint and emit the 'new-ws' event on the eventbus
+ *
+ * @param {WebSocket} ws newly connected websocket
+ */
+function registerClient(ws) {
+  if (wsServer.eventbus)
+    wsServer.eventbus.emit('new-ws', { endpoint: ws.endpoint, name: ws.name })
+}
+
+/**
  * Decide if this WebSub request needs to be forwarded
  * to any of the WebSocket clients.
  *
@@ -96,7 +100,19 @@ function sendToWebSocket(endpoint, body) {
       ws.send(body)
 }
 
+const wsServer = new WebSocket.Server({
+  noServer: true,
+  maxPayload: 1024 * 1024, // 1MB
+})
+
+wsServer.on('connection', keepalive)
+wsServer.on('connection', registerClient)
+wsServer.once('close', clearAllKeepalives)
+wsServer.shouldHandle = shouldHandle
+wsServer.eventbus = null // injected from index.js
+
 module.exports = {
+  wsServer,
   sendToWebSocket,
   upgradeToWebSocket
 }

@@ -33,6 +33,7 @@ module.exports = {
       'prefer-arrow-callback': 'off',
       'node/no-unpublished-require': 'off',
       'babel/no-invalid-this': 'off',
+      'no-new': 'off',
     }
   }],
   rules: {

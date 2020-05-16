@@ -41,5 +41,10 @@ describe('HTTP Server', function () {
   })
 
   xit('registers known & verified endpoints')
+
   xit('only emits webhook events for registered endpoints')
+
+  xit('sends a webhook event when a known endpoint receives a webhook')
+  xit('does not send a webhook event when unknown endpoints receive webhooks')
+
 })

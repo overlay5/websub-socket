@@ -58,7 +58,8 @@ function respond(res, statusCode = 404, message = '') {
  */
 function notificationHandler(req, res, next) {
   const endpoint = endpointFromReq(req)
-  handler.emit('webhook', endpoint, req.body)
+  if (handler.eventbus)
+    handler.eventbus.emit('webhook', endpoint, req.body)
   return respond(res, 200, 'ok')
 }
 
@@ -108,6 +109,8 @@ handler
   .use('/hook/', bodyParser.raw({ type: '*/*' }))
   .use('/hook/', webhookHandler)
   .use((req, res, next) => respond(res, 404, 'not found'))
+
+handler.eventbus = null // injected from index.js
 
 module.exports = {
   handler
