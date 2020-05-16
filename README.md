@@ -1,6 +1,6 @@
 # WebSub-Socket
 
-Implements a callback URL for [WebSub][1] subscribers, which proxies all
+Implements a callback URL for [WebSub][^1] subscribers, which proxies all
 incoming webhook notifications to the WebSocket client subscriber.
 
 WebSub-Socket does not initiate **Subscribe** calls, it does support hub
@@ -36,4 +36,4 @@ verifications by acknowledging challenge requests.
 
 ### Reference:
 
-* https://www.w3.org/TR/websub
+[^1]: https://www.w3.org/TR/websub "WebSub"
