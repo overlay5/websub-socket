@@ -34,6 +34,7 @@ verifications by acknowledging challenge requests.
 * HUB starts sending notification messages to the callback URL whenever the topic is updated
 * Proxy re-sends these messages to any WebSocket clients registered using a matching endpoint
 
-### Reference:
+### Reference
+* [WebSub][^1] W3C Recommendation - formerly known as PubSubHubbub
 
 [^1]: https://www.w3.org/TR/websub "WebSub"
