@@ -1,9 +1,18 @@
-const log = require('./src/logger')('websub')
-const { app } = require('./src/application')
-const { resendWebhook, upgradeToWebSocket } = require('./src/websocket-server')
+const { handler } = require('./src/http-handler')
+const { upgradeToWebSocket, sendToWebSocket } = require('./src/websocket-server')
 const { startServer } = require('./src/http-server')
 
+/* start the http listener */
 const server = startServer()
+
+/* handle upgrade requests for websockets */
 server.on('upgrade', upgradeToWebSocket)
-server.on('request', app)
-app.on('webhook', resendWebhook)
+
+/* middleware handlers for http requests */
+server.on('request', handler)
+
+/**
+ * Event: 'webhook'
+ * Emitted by handler each time a POST request is received on a known endpoint.
+ **/
+handler.on('webhook', sendToWebSocket)

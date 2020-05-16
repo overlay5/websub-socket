@@ -1,6 +1,14 @@
 const log = require('./logger')('websub:ws')
-const { URL } = require('url')
 const WebSocket = require('ws')
+const { endpointFromReq } = require('./endpoint')
+
+/**
+ * @typedef { import('http') } http
+ * @typedef { import('http').IncomingMessage } http.IncomingMessage
+ * @typedef { import('http').ServerResponse } http.ServerResponse
+ * @typedef { import('net') } net
+ * @typedef { import('net').Socket } net.Socket
+ **/
 
 const KEEPALIVE_INTERVAL = 10000
 
@@ -62,16 +70,14 @@ wsServer.on('connection', ws => {
  * Handle an http.Server 'upgrade' event
  *
  * @param {http.IncomingMessage} req Arguments for the HTTP request, as it is in the 'request' event
- * @param {stream.Duplex} socket Network socket between the server and client
+ * @param {net.Socket} socket Network socket between the server and client
  * @param {Buffer} head The first packet of the upgraded stream (may be empty)
  * @returns {void}
  */
 function upgradeToWebSocket(req, socket, head) {
-  const url = new URL(req.url, `https://${req.headers.host}`)
   wsServer.handleUpgrade(req, socket, head, ws => {
     ws.name = `${socket.remoteAddress}:${socket.remotePort}`
-    ws.endpoint = url.pathname.replace(/^\/*socket\/*/g, '')
-    log('websocket endpoint: %s', ws.endpoint)
+    ws.endpoint = endpointFromReq(req)
     wsServer.emit('connection', ws)
   })
 }
@@ -80,17 +86,17 @@ function upgradeToWebSocket(req, socket, head) {
  * Decide if this WebSub request needs to be forwarded
  * to any of the WebSocket clients.
  *
- * @param {http.IncomingMessage} req incoming http message
+ * @param {string} endpoint name of endpoint
+ * @param {Buffer} body content to send to ws clients for endpoint
+ * @returns {void}
  */
-function resendWebhook(req) {
-  const url = new URL(req.url, `https://${req.headers.host}`)
-  const endpoint = url.pathname.replace(/^\/*/g, '')
+function sendToWebSocket(endpoint, body) {
   for (const ws of wsServer.clients)
     if (ws.endpoint === endpoint)
-      ws.send(req.body)
+      ws.send(body)
 }
 
 module.exports = {
-  resendWebhook,
+  sendToWebSocket,
   upgradeToWebSocket
 }
