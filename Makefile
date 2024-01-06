@@ -22,7 +22,7 @@ node-shell: ## Start a Bash CLI in the WebSub container
 	@docker-compose exec websub bash
 
 test: ## Run 'npm test' in the WebSub container
-	@docker-compose exec websub /bin/sh -c 'DEBUG= npm test'
+	@docker-compose exec websub /bin/sh -c 'cd /app ; DEBUG= npm test'
 
 .PHONY: help test
 

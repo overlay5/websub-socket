@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 services:
   websub:
@@ -18,8 +18,7 @@ services:
     volumes:
     - .:/app:cached
     - npm_cache:/root/.npm:delegated
-    - node_modules:/app/node_modules:delegated
+    - npm_cache:/home/node/.npm:delegated
 
 volumes:
   npm_cache:
-  node_modules:
